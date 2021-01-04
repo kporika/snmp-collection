@@ -1,0 +1,37 @@
+[package]
+name = "snmp-actix"
+version = "0.1.0"
+authors = ["Kalidas Porika<kporika@gmail.com>"]
+edition = "2018"
+
+
+[dependencies]
+snmp ="0.2.2"
+actix = "0.10"
+actix-rt = "1.1"
+actix-utils = "2.0.0"
+tokio = "0.2"
+tokio-util = { version = "0.3", features = [ "codec", "udp" ] }
+futures = "0.3"
+futures-util = "0.3"
+bytes = "0.5"
+postgres="0.19.0"
+config = "0.10"
+serde ={ version= "1.0.118", features = ["derive"] }
+sled = "0"
+slog = "2.7.0"
+slog-async = "2.5"
+slog-term = "2.6.0"
+slog-json = "2.3.0"
+thread-id = "3.3.0"
+
+[build-dependencies]
+vergen = "*"
+
+[[bin]]
+name = "snmpcollector"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 'z'
+lto=true

@@ -1,0 +1,26 @@
+debug=true
+#postgres database settings
+[database]
+dbname="dc"
+user="test"
+password="ciena123"
+host="localhost"
+
+[datacollection]
+# number of collection pairs, udp sockets for data collection, each pair consists of sender and recievr
+dc_actor_pairs=24
+# retries, 
+retries=3
+# wait time between retries ,  retries*wait_time_millis should be less than interval_seconds 
+wait_time_millis=100000
+#periodicty of data collection in seconds
+interval_seconds=300
+# starting udp port for binding to a udpsocket, we will be binding dc_actor_pairs of udpscokets starting with the below port
+udp_bind_port=8161
+
+[logger]
+# log location of the log file_path
+file_path="/var/tmp/actix-test.log"
+# filtering level , above this level will be logged, 
+# available options are Off,Critical,Error,Warning,Info,Debug,Trace,
+log_level="Info"

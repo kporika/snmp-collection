@@ -1,0 +1,15 @@
+debug=true
+
+[database]
+dbname="dc"
+user="test"
+password="ciena123"
+host="localhost"
+
+[datacollection]
+dc_actor_pairs=8
+retries=3
+wait_time_millis=50000
+interval_seconds=300
+udp_bind_port=8161
+
