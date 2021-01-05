@@ -46,7 +46,7 @@ When the first round of data collection is done,  2nd and 3rd rounds are done by
 ```sh
 select * from polleddata where id not in (select distinct(id) from statsdata where EXTRACT(epoch FROM timestamp) > ts_at_the_beginning_of_data_collection )
 ```
-
+![Alt text](./images/snmp-dc-flowchart.png?raw=true "Snmo DataCollection Flow Chart")
 
 To compile the program, Install Rust related dependencies 
 ```sh
