@@ -1,11 +1,15 @@
 extern crate vergen;
 
-fn main() {
-    let flags = vergen::ConstantsFlags::all();
-    // Generate the version.rs file in the Cargo OUT_DIR.
-    assert!(vergen::generate_version_rs(flags).is_ok());
-}
+use vergen::{ConstantsFlags, generate_cargo_keys};
 
+fn main() {
+    // Setup the flags, toggling off the 'SEMVER_FROM_CARGO_PKG' flag
+    let mut flags = ConstantsFlags::all();
+    flags.toggle(ConstantsFlags::SEMVER_FROM_CARGO_PKG);
+
+    // Generate the 'cargo:' key output
+    generate_cargo_keys(flags).expect("Unable to generate the cargo keys!");
+}
 /*
 SNMP Data Collection - Rust - Actix - Actor Pattern
 Main Thread -> DB Server : Start Data Collection

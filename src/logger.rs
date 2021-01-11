@@ -34,7 +34,7 @@ where
         Ok(())
     }
 }
-
+/*
 pub struct FnGuard {
     function_name: &'static str,
     logger: Logger,
@@ -67,3 +67,4 @@ impl Drop for FnGuard {
         info!(self.logger, "[Exit]"; o!("function_name"=>self.function_name))
     }
 }
+*/

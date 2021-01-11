@@ -56,6 +56,27 @@ To run
 ```sh
 cargo run --release
 ```
+
+You can use docker and docker-compose to test the data collection.
+
+To build the docker image
+
+```sh
+make debian
+```
+
+To run using docker-compose
+```sh
+docker-compose up
+```
+
+to change the data to be polled , you can directly modify the polleddata table in the db container
+
+```sh
+docker-compose exec db psql -h localhost -U test -d dc
+```
+this command gives the access to the psql prompt on the DB container.
+
 All the configurations/knobs for the application can be changed from the corresponding .toml files under config directory.
 
 Sample Configuration

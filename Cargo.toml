@@ -3,7 +3,7 @@ name = "snmp-actix"
 version = "0.1.0"
 authors = ["Kalidas Porika<kporika@ciena.com>"]
 edition = "2018"
-
+build = "build.rs"
 
 [dependencies]
 snmp ="0.2.2"

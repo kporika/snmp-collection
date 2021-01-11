@@ -4,6 +4,7 @@ debug=true
 dbname="dc"
 user="test"
 password="ciena123"
+### hostname of the DB
 host="localhost"
 
 [datacollection]
@@ -20,7 +21,7 @@ udp_bind_port=8161
 
 [logger]
 # log location of the log file_path
-file_path="/var/tmp/actix-test.log"
+file_path="/var/tmp/snmp-dc.log"
 # filtering level , above this level will be logged, 
 # available options are Off,Critical,Error,Warning,Info,Debug,Trace,
 log_level="Info"

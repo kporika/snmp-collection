@@ -5,6 +5,8 @@ use actix::prelude::*;
 use crate::dc::udpserver::{Attribute,ValuePair, UdpSender} ;
 use std::time::SystemTime;
 use slog::info ;
+
+
 pub struct DbServer {
     pub client: Client ,
     pub senders: Vec<Addr<UdpSender>>,
@@ -16,7 +18,51 @@ pub struct DbServer {
 impl Actor for DbServer {
     type Context = Context<Self>;
     fn started(&mut self, ctx: &mut Context<Self>) {
-       ctx.set_mailbox_capacity(10000);
+        
+        ctx.set_mailbox_capacity(10000);
+        // add tables if not present
+        let query:&str = "SELECT EXISTS(SELECT FROM information_schema.tables WHERE  table_schema ='public' AND table_name = 'polleddata')" ;
+        let rows = self.client.query(query, &[]).unwrap();
+        info!(self.logger, "checking the exsitence of DB Table, POLLEDDATA");
+        let table_exists = rows[0].get::<_,bool>(0) ;
+        if !table_exists {
+            info!(self.logger, "POLLEDDATA Table does not exist");
+
+            self.client.batch_execute("
+                CREATE TABLE IF NOT EXISTS POLLEDDATA (
+                    id INT PRIMARY KEY,
+                    oid VARCHAR (50)  NOT NULL,
+                    ip_addr VARCHAR (50) NOT NULL,
+                    community VARCHAR (25)  NOT NULL 
+                )"
+            ).unwrap();
+            info!(self.logger, "Created Polleddata");
+            self.client.batch_execute("
+                CREATE TABLE IF NOT EXISTS STATSDATA (
+                    id INT,
+                    timestamp TIMESTAMP,
+                    vtype INT,
+                    value Double Precision
+                )"
+            ).unwrap();
+            info!(self.logger, "Created statsdata");
+
+            for i in 1..13 {
+                self.client.execute(
+                    "INSERT INTO polleddata (id,oid,ip_addr,community) VALUES ($1, $2, $3, $4)",
+                    &[&(100000+i), &format!("1.3.6.1.2.1.2.2.1.10.{}", i).as_str()  , &"192.168.1.1:161", &"public"],
+                ).unwrap() ;
+            }
+            for i in 1..13 {
+                self.client.execute(
+                    "INSERT INTO polleddata (id,oid,ip_addr,community) VALUES ($1, $2, $3, $4)",
+                    &[&(100012+i), &format!("1.3.6.1.2.1.2.2.1.16.{}", i).as_str() , &"192.168.1.1:161", &"public"],
+                ).unwrap() ;
+            }
+            info!(self.logger, "inserted oids for sample snmp data collection");
+
+        }
+        info!(self.logger, "Initializatin complete for DB Server Actor");
     }
     
 }

@@ -32,7 +32,7 @@ use logger::ThreadLocalDrain;
 use dc::udpserver::{UdpServer, UdpSender, UdpPacket} ;
 use dc::db::{DbServer, StartDataCollection, RepeatDataCollection, BulkCopy} ;
 
-include!(concat!(env!("OUT_DIR"), "/version.rs"));
+// include!(concat!(env!("OUT_DIR"), "/version.rs"));
 
 
 #[actix_rt::main]
@@ -133,7 +133,7 @@ fn setup_slog(path:&str, _level:&str ) -> slog::Logger {
                        info.file(),
                        info.line(),
                 )}),
-                "sha"=>VERGEN_SHA_SHORT))
+                "sha"=>env!("VERGEN_SHA_SHORT")))
         .build()
         .fuse();    
     let dup_drain = slog::Duplicate::new(json_drain, term_drain);

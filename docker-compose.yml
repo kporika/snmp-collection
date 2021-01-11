@@ -1,0 +1,18 @@
+version: '3.7'
+services:
+  snmp:
+    image: snmp-dc-debian
+    depends_on:
+      - db
+    environment:
+      - RUN_MODE=production
+  db:
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=ciena123
+      - POSTGRES_DB=dc
+volumes:
+  postgres_data:

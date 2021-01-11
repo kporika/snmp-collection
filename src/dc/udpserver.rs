@@ -80,7 +80,6 @@ impl  Attribute {
 
 impl StreamHandler<UdpPacket> for UdpServer{
     fn handle(&mut self, msg: UdpPacket, _: &mut Context<Self>) {
-           // let mydata = &data.freeze() ;
            let mut resp = SnmpPdu::from_bytes(&msg.data).unwrap();
            debug!(self.logger, "{:#?}", resp);
            if let Some((_oid, value )) = resp.varbinds.next() {
@@ -124,8 +123,4 @@ impl Handler<Attribute> for UdpSender {
 fn get_oid_array(oid:&str) -> Vec<u32> { 
     oid.split('.').collect::<Vec<&str>>().iter().map(|x| x.parse::<u32>().unwrap_or(0)).collect()
 }
-
-
-
-
 
