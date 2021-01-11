@@ -1,6 +1,9 @@
 # Snmp Data Collection using Rust and Actix
 Snmp Data Collection is the process of collecting performance data from various agents in the network using Snmp. In this method instead of focussing on one agent at a time to do the data collection, we cull all the attributes that need to be polled from all agents into a single DB table called POLLEDDATA. Here, all the tabuar data, i.e. data of type that has multiple indexes will get converted into a unique instance. For example, ifOctets attribute for an agent may have multiple indexes, say 100. in this method we will have 100 unique attributes to be polled with ifOCtets.index for all the indexes for that agent. Similarly all scalar attributes will be padded with .0. POLLEDDATA table to contain all the data, but may have bit of duplication in the fields of agent, version and community. see the sample of a POLLEDDATA table
 
+The core of this technique is each snmp get is mapped to a unique id in the polled data, generally most data collections use integer increments to the request id. Here, we are creating a pro-actively mapping the request id to the polled data id.
+
+
   ```sh
 CREATE TABLE POLLEDDATA (
 	id INT PRIMARY KEY,
