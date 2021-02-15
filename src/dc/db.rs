@@ -2,8 +2,9 @@ use postgres::{Client, NoTls};
 use postgres::binary_copy::BinaryCopyInWriter;
 use postgres::types::Type;
 use actix::prelude::*;
-use crate::dc::udpserver::{Attribute,ValuePair, UdpSender} ;
+use crate::dc::udpserver::{Attribute,ValuePair, UdpSender, MessageCount} ;
 use std::time::SystemTime;
+// use tokio::time::{delay_for, Duration};
 use slog::info ;
 
 
@@ -19,9 +20,9 @@ impl Actor for DbServer {
     type Context = Context<Self>;
     fn started(&mut self, ctx: &mut Context<Self>) {
         
-        ctx.set_mailbox_capacity(10000);
+        ctx.set_mailbox_capacity(200000);
         // add tables if not present
-        let query:&str = "SELECT EXISTS(SELECT FROM information_schema.tables WHERE  table_schema ='public' AND table_name = 'polleddata')" ;
+       /* let query:&str = "SELECT EXISTS(SELECT FROM information_schema.tables WHERE  table_schema ='public' AND table_name = 'polleddata')" ;
         let rows = self.client.query(query, &[]).unwrap();
         info!(self.logger, "checking the exsitence of DB Table, POLLEDDATA");
         let table_exists = rows[0].get::<_,bool>(0) ;
@@ -62,6 +63,7 @@ impl Actor for DbServer {
             info!(self.logger, "inserted oids for sample snmp data collection");
 
         }
+        */
         info!(self.logger, "Initializatin complete for DB Server Actor");
     }
     
@@ -90,15 +92,22 @@ impl DbServer {
         let rows = self.client.query(query, &[]).unwrap();
        
         for (i,row) in rows.iter().enumerate() {
-            self.senders[i%self.count].do_send(
+            let _agent_id = row.get::<_, i32>(5) as usize ;
+            
+            self.senders.get(i%self.count).unwrap().do_send(
+            // self.senders[i%self.count].do_send(
                 Attribute::new(
                     row.get::<_, i32>(0),
                     row.get::<_, &str>(1),
                     row.get::<_, &str>(2),
-                    row.get::<_, &str>(3)
+                    row.get::<_, i32>(3),
+                    row.get::<_, &str>(4)
                 )
             );  
-           
+          //  delay_for(Duration::from_millis(2)) ;
+        }
+        for i in 0..self.count{
+            self.senders.get(i).unwrap().do_send(MessageCount)
         }
     }
 }
@@ -110,7 +119,7 @@ pub struct StartDataCollection;
 impl Handler<StartDataCollection> for DbServer {
     type Result =  ();
     fn handle(&mut self, _msg: StartDataCollection, _: &mut Context<Self>) {
-        self.send_attr_for_collection("SELECT * FROM POLLEDDATA");
+        self.send_attr_for_collection("SELECT * FROM POLLEDDATA ORDER BY ID, AID");
     }   
 }
 
@@ -124,7 +133,7 @@ impl Handler<RepeatDataCollection> for DbServer {
     fn handle(&mut self, msg: RepeatDataCollection, _: &mut Context<Self>) {
         let ts = msg.ts.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
         self.send_attr_for_collection(
-            format!("select * from polleddata where id not in (select distinct(id) from statsdata where EXTRACT(epoch FROM timestamp) > {})", ts).as_str() 
+            format!("select * from polleddata where id not in (select distinct(id) from statsdata where EXTRACT(epoch FROM timestamp) > {}) ORDER BY ID, AID", ts).as_str() 
         );
     }   
 }
