@@ -83,7 +83,8 @@ async fn get_sender(port:u32, logger: slog::Logger) -> (Addr<UdpSender>, SplitSt
     let dc = UdpSender::create(|ctx|  {
                UdpSender{
                     sender: SinkWrite::new(sink, ctx) ,
-                    logger: logger.clone()
+                    logger: logger.clone(),
+                    count: 0
                 }
      });
 

@@ -1,9 +1,9 @@
 debug=true
 #postgres database settings
 [database]
-dbname="dc"
-user="test"
-password="ciena123"
+dbname="test"
+user="umonitor"
+password="ngnms"
 ### hostname of the DB
 host="localhost"
 

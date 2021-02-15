@@ -63,16 +63,17 @@ pub struct Attribute {
    pub id: i32,
    pub oid: String,
    pub ip_addr: String,
-   // port: u32,
+   pub version: i32,
    pub community: String,
 }
 
 impl  Attribute {
-    pub fn new(id:i32, oid:&str ,ip_addr:&str,community:&str) -> Self {
+    pub fn new(id:i32, oid:&str ,ip_addr:&str, version:i32, community:&str) -> Self {
         Self{
             id, 
             oid: oid.to_string(),
             ip_addr: ip_addr.to_string(),
+            version,
             community: community.to_string()
         }
     }
@@ -83,12 +84,16 @@ impl StreamHandler<UdpPacket> for UdpServer{
            let mut resp = SnmpPdu::from_bytes(&msg.data).unwrap();
            debug!(self.logger, "{:#?}", resp);
            if let Some((_oid, value )) = resp.varbinds.next() {
-            match value {
-                Value::Counter32(val)  => self.server.do_send(ValuePair::new(resp.req_id, 64,  val as f64)),
-                Value::Counter64(val)  => self.server.do_send(ValuePair::new(resp.req_id, 70, val as f64)),
-                Value::Integer(val) => self.server.do_send(ValuePair::new(resp.req_id, 80, val as f64)),
-                _ =>  self.server.do_send(ValuePair::new(resp.req_id, 0,  0f64))
-            }
+                
+               match value {
+                    Value::Counter32(val)  => self.server.do_send(ValuePair::new(resp.req_id, 64,  val as f64)),
+                    Value::Counter64(val)  => self.server.do_send(ValuePair::new(resp.req_id, 70, val as f64)),
+                    Value::Integer(val) => self.server.do_send(ValuePair::new(resp.req_id, 80, val as f64)),
+                    Value::Unsigned32(val) => self.server.do_send(ValuePair::new(resp.req_id, 80, val as f64)),
+                    Value::Boolean(val) => self.server.do_send(ValuePair::new(resp.req_id, 80, 0f64)),
+                    Value::Timeticks(val) => self.server.do_send(ValuePair::new(resp.req_id, 80, val as f64)),
+                    _ =>  self.server.do_send(ValuePair::new(resp.req_id, 0,  0f64))
+                } 
             
         }  
     }
@@ -96,6 +101,7 @@ impl StreamHandler<UdpPacket> for UdpServer{
 pub struct UdpSender{
     pub sender: SinkWrite<SinkItem, UdpSink>,
     pub logger: slog::Logger,
+    pub  count:u64 
 
 }
 
@@ -103,7 +109,7 @@ impl  Actor for UdpSender {
     type Context = Context<Self>;
     fn started(&mut self, ctx: &mut Context<Self>) { 
         info!(self.logger, "UDP Sender started");
-        ctx.set_mailbox_capacity(1000);
+        ctx.set_mailbox_capacity(10000);
     }
     fn stopping(&mut self, _: &mut Context<Self>) -> Running {
         System::current().stop();
@@ -116,11 +122,22 @@ impl Handler<Attribute> for UdpSender {
     fn handle(&mut self, attr: Attribute, _: &mut Context<Self>)  {
         debug!(self.logger, "{:#?}", attr);
         let mut buf = pdu::Buf::default() ;   
-        pdu::build_get(attr.community.as_bytes(), attr.id, get_oid_array(attr.oid.as_str()).as_slice(), &mut buf) ;               
+        pdu::build_get(attr.community.as_bytes(), attr.id, get_oid_array(attr.oid.as_str()).as_slice(), &mut buf, attr.version) ;               
         self.sender.write((Bytes::from(buf[..].to_vec()) , attr.ip_addr.parse::<SocketAddr>().unwrap())); 
+        self.count += 1 ;
     }
 }
 fn get_oid_array(oid:&str) -> Vec<u32> { 
-    oid.split('.').collect::<Vec<&str>>().iter().map(|x| x.parse::<u32>().unwrap_or(0)).collect()
+    oid[1..].split('.').collect::<Vec<&str>>().iter().map(|x| x.parse::<u32>().unwrap_or(0)).collect()
 }
 
+#[rtype(result = "()")]
+#[derive(Debug, Message)]
+pub struct MessageCount;
+impl Handler<MessageCount> for UdpSender {
+    type Result =  ();
+    fn handle(&mut self, _msg: MessageCount, _: &mut Context<Self>) {
+        info!(self.logger, "Sent {} snmp get messages", format!("{:?}",self.count));
+        self.count = 0 ;
+    }
+}
