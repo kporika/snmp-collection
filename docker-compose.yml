@@ -12,7 +12,7 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_USER=test
-      - POSTGRES_PASSWORD=ciena123
+      - POSTGRES_PASSWORD=xxxxxx
       - POSTGRES_DB=dc
 volumes:
   postgres_data:
