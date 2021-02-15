@@ -9,14 +9,17 @@ CREATE TABLE POLLEDDATA (
 	id INT PRIMARY KEY,
 	oid VARCHAR (50)  NOT NULL,
 	ip_addr VARCHAR (50) NOT NULL,
+  snmp_version INT NOT NULL,
 	community VARCHAR (25)  NOT NULL
 );
 
-INSERT INTO POLLEDDATA(id,oid,ip_addr,community) VALUES(100001, '1.3.6.1.2.1.2.2.1.10.1', '192.168.1.1:161',  'public') ;
-INSERT INTO POLLEDDATA(id,oid,ip_addr,community) VALUES(100002, '1.3.6.1.2.1.2.2.1.10.2', '192.168.1.1:161', 'public') ;
-INSERT INTO POLLEDDATA(id,oid,ip_addr,community) VALUES(100003, '1.3.6.1.2.1.2.2.1.10.3', '192.168.1.1:161', 'public') ;
-```
+if POLLEDDATA table is not available, you can create a POLLEDDATA.VIEW similar to above schema to get all the attributes that need to be polled from the SNMP Agents.
 
+INSERT INTO POLLEDDATA(id,oid,ip_addr,community) VALUES(100001, '1.3.6.1.2.1.2.2.1.10.1', '192.168.1.1:161', 2, 'public') ;
+INSERT INTO POLLEDDATA(id,oid,ip_addr,community) VALUES(100002, '1.3.6.1.2.1.2.2.1.10.2', '192.168.1.1:161', 2, 'public') ;
+INSERT INTO POLLEDDATA(id,oid,ip_addr,community) VALUES(100003, '1.3.6.1.2.1.2.2.1.10.3', '192.168.1.1:161', 2, 'public') ;
+```
+If there is no polleddata table 
 After defining the polled data, we need a mechanism to schedule the data collection using the cron job or threads. In this case, i'm using actix (Highly scalable Actor framework in rust ) to manage the state of the actors and the data collection.
 
 # Here, we have 3 main Actors(threads) for Data Collection.
@@ -90,7 +93,7 @@ debug=true
 [database]
 dbname="dc"
 user="test"
-password="ciena123"
+password="yourpassword"
 host="localhost"
 
 [datacollection]
